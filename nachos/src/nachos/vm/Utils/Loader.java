@@ -16,6 +16,7 @@ public class Loader {
         for (int s = 0; s < coffFile.getNumSections(); ++s) {
             CoffSection section = coffFile.getSection(s);
 
+            // ---------------------------------
             // TODO:  (it works though) this "if" part need to be checked (if really needed in demand paging)
             if (section.getFirstVPN() != numPages) {
                 coff.close();
@@ -39,7 +40,6 @@ public class Loader {
                 int vpn = section.getFirstVPN() + i;
                 sectionNums[vpn] = s;
                 segmentPageNums[vpn] = i;
-                //System.err.println(vpn);
             }
         }
     }
