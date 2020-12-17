@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="vm">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/nachos/out/production/nachos/nachos/vm.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
