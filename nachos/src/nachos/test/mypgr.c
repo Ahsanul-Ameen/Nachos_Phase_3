@@ -41,6 +41,11 @@ void main()
 
     printf("mypgr forking echo.coff... \n");
     processID1 = exec("echo.coff", 1,  execArgs);
+    join(processID1, &status1);
+    printf("********* Join On Process %d Finished\nStatus Value:  %d    ***************\n", processID1, status1);
+
+    printf("mypgr forking matmult.coff... \n");
+    processID1 = exec("matmult.coff", 1, execArgs);
 //    join(processID1, &status1);
 //    printf("********* Join On Process %d Finished\nStatus Value:  %d    ***************\n", processID1, status1);
 //

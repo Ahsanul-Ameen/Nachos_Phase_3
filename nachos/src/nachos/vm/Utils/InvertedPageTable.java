@@ -12,21 +12,21 @@ import java.util.List;
 public class InvertedPageTable {
 
     public InvertedPageTable() {
-        ppnToProcessPrivate = new HashMap<>();
+        coreMap = new HashMap<>();
         invertedTranslator = new HashMap<>();
     }
 
     public void insert(Integer pid, TranslationEntry translationEntry) {
-        ppnToProcessPrivate.put(translationEntry.ppn, new Pair<>(new Pair<>(pid, translationEntry.vpn), translationEntry));
+        coreMap.put(translationEntry.ppn, new Pair<>(new Pair<>(pid, translationEntry.vpn), translationEntry));
         invertedTranslator.put(new Pair<>(pid, translationEntry.vpn), translationEntry.ppn);
     }
 
     public void removePage(Integer pid, Integer vpn) {
-        Pair<Integer, Integer> key = new Pair(pid, vpn);
+        Pair<Integer, Integer> key = new Pair<>(pid, vpn);
         if(invertedTranslator.containsKey(key)) {
             Integer ppn = invertedTranslator.get(key);
-            Lib.assertTrue(ppnToProcessPrivate.containsKey(ppn), "Corrupted Page Table!");
-            ppnToProcessPrivate.remove(ppn);
+            Lib.assertTrue(coreMap.containsKey(ppn), "Corrupted Page Table!");
+            coreMap.remove(ppn);
             invertedTranslator.remove(key);
         }
     }
@@ -34,7 +34,7 @@ public class InvertedPageTable {
     public void removeProcess(Integer pid) {
         List<Pair<Integer, Integer>> removableKeys = new ArrayList<>();
         for(Pair<Integer, Integer> key : invertedTranslator.keySet()) {
-            if(key.first == pid) {
+            if(key.first.equals(pid)) {
                 removableKeys.add(key);
             }
         }
@@ -46,7 +46,7 @@ public class InvertedPageTable {
 
     public TranslationEntry getTranslationEntry(Integer ppn) {
         if(ppn == null || ppn < 0 || ppn >= Machine.processor().getNumPhysPages()) return null;
-        return (ppnToProcessPrivate.containsKey(ppn)) ? ppnToProcessPrivate.get(ppn).second : null;
+        return (coreMap.containsKey(ppn)) ? coreMap.get(ppn).second : null;
     }
 
     public TranslationEntry getTranslationEntry(Integer pid, Integer vpn) {
@@ -55,18 +55,18 @@ public class InvertedPageTable {
 
     public Integer getPID(Integer ppn) {
         if(ppn == null || ppn < 0 || ppn >= Machine.processor().getNumPhysPages()) return -1;
-        return ppnToProcessPrivate.containsKey(ppn) ? ppnToProcessPrivate.get(ppn).first.first : -1;
+        return coreMap.containsKey(ppn) ? coreMap.get(ppn).first.first : -1;
     }
 
     public Integer getVPN(Integer ppn) {
         if(ppn == null || ppn < 0 || ppn >= Machine.processor().getNumPhysPages()) return -1;
-        return ppnToProcessPrivate.containsKey(ppn) ? ppnToProcessPrivate.get(ppn).first.second : -1;
+        return coreMap.containsKey(ppn) ? coreMap.get(ppn).first.second : -1;
     }
 
 
 
     // ppn -> {{pid, vpn}, TranslationEntry}
-    private final HashMap<Integer, Pair<Pair<Integer, Integer>, TranslationEntry>> ppnToProcessPrivate;
+    private final HashMap<Integer, Pair<Pair<Integer, Integer>, TranslationEntry>> coreMap;
     // {pid, vpn} -> ppn
     private final HashMap<Pair<Integer, Integer>, Integer> invertedTranslator;
 
