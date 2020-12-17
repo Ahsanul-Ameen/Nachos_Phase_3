@@ -1,0 +1,25 @@
+Why run user programs?
+------------------------
+An OS is written so that it can run on user programs. The sole purpose of writing and operating system is to provide abstraction to the application-programmers.
+
+
+
+Writing user programs
+-----------------------
+To write user programs, simply look at some .c files in nachos/test. You will get an idea of how to write them. The core idea is pretty simple, you can pick those up just by looking at those example .c files. Only problem is: you just don't get to use all features of C.
+
+
+
+Compiling .c files
+-------------------
+Say your source code is in file: name.c. You need to add "name" in nachos/test/Makefile at line 33. Then, you just go to the nachos/test directory and type the command: gmake. If your source code doesn't have any error, you will see that a COFF file named "name.coff" in the test directory.
+
+
+
+Running name.coff in nachos
+----------------------------
+When nachos starts, it loads a default user program and starts that. That program is usually called a shell program. If you open nachos/proj2/nachos.conf, at line 12, you will find the shell program name. This is by default halt.coff. To run name.coff as the shell program, change the line to the following:
+
+Kernel.shellProgram = name.coff
+
+Then, you just start nachos using the command: nachos. (Of course, you must build nachos using the command gmake in proj2).

@@ -1,0 +1,78 @@
+What is a cross-compiler?
+--------------------------
+A cross compiler is a compiler capable of creating executable code for a platform other than the one on which the compiler is running. For example, a compiler that runs on a Windows 7 PC but generates code that runs on Android smartphone is a cross compiler (definition taken from Wiki).
+
+
+
+What is a mips cross-compiler and why do we need this?
+------------------------------------------------------
+If the target language of the cross-compiler is MIPS, then it is a mips cross-compiler. 
+
+We will use a mips cross-compiler. That is, the cross-compiler that we will use will run on our machine (Windows or Linux x86 or x86_64) and generate executable file in MIPS. The input to this compiler will be simple .c files (found in nachos/test) and the output will be MIPS executable in COFF format (you can see some COFF files in nachos/test as well). Nachos can recognize and run these COFF executables.
+
+
+
+Updated link to download mips cross-compiler
+---------------------------------------------
+The link we previously posted did not contain cross-compiler for Linux_x86_64. Therefore, please use the following link instead:
+https://inst.eecs.berkeley.edu/~cs162/fa13/Nachos/xgcc.html
+
+
+
+Steps to install
+-----------------
+The steps are still the same
+
+1. Download and extract the appropriate cross-compiler
+2. Add the bin directory to system environment variable ARCHDIR
+3. Prepend the bin directory to system environment variable PATH
+
+
+
+
+How to check installation
+----------------------------
+To check that the cross-compiler is working, go to nachos/test directory, and run gmake. This will compile all .c files to .coff files. If the installation is problematic, then you will get some errors.
+
+
+
+Troubleshooting errors on Linux-x86_64
+----------------------------------------
+Most likely, you will face the following errors:
+
+1|
+--
+Error: Unable to load shared library file libmpfr.so.4
+
+Reason: The compiler is trying to locate and load this file in many directories. One of the directories (where the file should be) is /usr/lib/x86_64-linux-gnu/. If you go there and look for files named "libmpfr", you may see a file "libmpfr.so.6". That is, your system has an upgraded library. But our compiler is looking for an older version! So, the compiler is not able to locate that file.
+
+Solution: Create a link that points to the upgraded file.
+
+sudo ln -s /usr/lib/x86_64-linux-gnu/libmpfr.so.6 /usr/lib/x86_64-linux-gnu/libmpfr.so.4
+
+After doing this, the compiler will find a file with this name. In effect, it will be using libmpfr6, but it will think that it is using libmpfr4.
+
+
+2|
+--
+Error: Unable to load shared library file libgmp.so.3
+
+Reason: Just as above
+
+Solution:
+
+sudo ln -s /usr/lib/x86_64-linux-gnu/libgmp.so.10 /usr/lib/x86_64-linux-gnu/libgmp.so.3
+
+
+3|
+--
+Error: You may see that some header file is missing
+
+Solution: Please use an updated test folder provided to you in Moodle. In particular, you just need to copy the file named "script" to your test directory.
+
+
+
+
+What to do with these COFF files?
+----------------------------------
+These COFF files are user programs. These are loaded into the kernel. The kernel then makes user-process using these programs and lets them run.
