@@ -3,6 +3,7 @@
 package nachos.machine;
 
 import nachos.security.*;
+import nachos.vm.Utils.MMU;
 
 /**
  * The <tt>Processor</tt> class simulates a MIPS processor that supports a
@@ -332,6 +333,8 @@ public final class Processor {
                 privilege.stats.numTLBMisses++;
                 Lib.debug(dbgProcessor, "\t\tTLB miss");
                 throw new MipsException(exceptionTLBMiss, vaddr);
+            } else {
+                ++MMU.AssociativeMemoryManager.tlbHits;
             }
         }
 

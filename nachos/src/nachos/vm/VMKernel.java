@@ -43,6 +43,7 @@ public class VMKernel extends UserKernel {
      * Terminate this kernel. Never returns.
      */
     public void terminate() {
+        System.out.println("\n\nTotal TLB hits : " + MMU.AssociativeMemoryManager.tlbHits);
         mmu.clearSwapArea();
         super.terminate();
     }

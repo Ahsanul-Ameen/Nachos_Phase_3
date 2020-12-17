@@ -249,6 +249,7 @@ public class MMU {
         }
 
         private final TLB tlb;
+        public static int tlbHits = 0;
     }
 
 
