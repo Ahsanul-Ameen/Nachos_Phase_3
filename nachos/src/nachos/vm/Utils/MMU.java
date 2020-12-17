@@ -36,13 +36,16 @@ public class MMU {
         public PageTableManager() {
             this.swapSpace = new SwapSpace();
             this.pageTable = new InvertedPageTable();
+            faultCountPerPPN = null;
         }
 
         public void init() {
             int numPhyPage = Machine.processor().getNumPhysPages();
             lruReplacement = new long[numPhyPage];
+            faultCountPerPPN = new double[numPhyPage];
             for(int i = 0; i < numPhyPage; ++i) {
                 lruReplacement[i] = Machine.timer().getTime();
+                faultCountPerPPN[i] = 0.0;
             }
 
             this.swapSpace.init();
@@ -80,7 +83,7 @@ public class MMU {
                 boolean status = handlePageFaultHardMiss(pid, vpn, loader);
                 if(!status) {
                     System.out.println("Can't resolve (hard miss) page fault!\nShould we kill the process ?");
-                    //Lib.assertTrue(status, "Can't resolve (hard miss) page fault!");
+                    Lib.assertTrue(status, "Can't resolve (hard miss) page fault!");
                 } else {
                     translationEntry = pageTable.getTranslationEntry(pid, vpn);
                     if(translationEntry != null) {
@@ -93,7 +96,7 @@ public class MMU {
 
         // handles a hard miss(not in Page Table; but may be in swap area or disk)
         public boolean handlePageFaultHardMiss(int pid, int vpn, Loader loader) {
-
+            ++pageFaultCount;
             faultLock.acquire();
 
             int removable_ppn = findRemovableIndex();
@@ -105,7 +108,6 @@ public class MMU {
             {
                 if(removable_pid == pid) {
                     //clear the corresponding TLB entry (consumed by this process's vpn)
-
                     associativeMemoryManager.eraseTLBEntry(removable_pid, removable_vpn);
                 }
 
@@ -128,6 +130,7 @@ public class MMU {
                 }
                 pageTable.insert(pid, removable_entry);
                 lruReplacement[removable_ppn] = Machine.timer().getTime(); // update page load time
+                ++faultCountPerPPN[removable_ppn]; // a page fault happened within the context of this ppn
             }
 
             faultLock.release();
@@ -146,6 +149,9 @@ public class MMU {
         private Lock faultLock;
 
         private long[] lruReplacement;
+
+        public static int pageFaultCount = 0;
+        public static double[] faultCountPerPPN;
     }
 
     // A scheduler class for the TLB
@@ -173,8 +179,7 @@ public class MMU {
 
             TranslationEntry translationEntry = Machine.processor().readTLBEntry(number);
             if(translationEntry.dirty) {
-                //pageTableManager.writeInPageTable(pid, translationEntry);
-                pageTableManager.writeInPageTable(pid, translationEntry); //fixme
+                pageTableManager.writeInPageTable(pid, translationEntry);
             }
 
             Machine.interrupt().restore(intStatus);
@@ -187,12 +192,11 @@ public class MMU {
             int removableIndex = tlb.findRemovableIndex();
             writeBackTLBEntry(removableIndex, pid);
 
-            //pageTableManager.writeInPageTable(pid, entry);
-            pageTableManager.writeInPageTable(pid, entry); //fixme
-            writeTLBEntry(removableIndex, entry);
+            pageTableManager.writeInPageTable(pid, entry);  // automatically clone to IPT
+            writeTLBEntry(removableIndex, entry);   // add to TLB
 
             tlb.setProcessIds(removableIndex, pid);
-            tlb.setLruCache(removableIndex, Machine.timer().getTime());
+            tlb.setLruCache(removableIndex, Machine.timer().getTime()); // update page load time in TLB
 
             Machine.interrupt().restore(intStatus);
         }
@@ -237,8 +241,8 @@ public class MMU {
 
         // return true if it can handle a TLB miss(maybe preceded by a resolved PageFault)
         public boolean handleTLBMiss(int pid, int vpn, Loader loader) {
-            //TranslationEntry pageEntry = pageTableManager.readFromPageTable(pid, vpn, loader);
-            TranslationEntry pageEntry = pageTableManager.readFromPageTable(pid, vpn, loader);//fixme
+            ++tlbMiss;
+            TranslationEntry pageEntry = pageTableManager.readFromPageTable(pid, vpn, loader);
             if(pageEntry == null) {
                 // an unresolved hard miss followed by a soft miss
                 return false;
@@ -250,6 +254,7 @@ public class MMU {
 
         private final TLB tlb;
         public static int tlbHits = 0;
+        public static int tlbMiss = 0;
     }
 
 

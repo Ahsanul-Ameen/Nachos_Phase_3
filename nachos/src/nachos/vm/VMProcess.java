@@ -187,7 +187,8 @@ public class VMProcess extends UserProcess {
             // we've to write new cases
             case Processor.exceptionTLBMiss:
                 int bad_vpn = Processor.pageFromAddress(processor.readRegister(Processor.regBadVAddr));
-                VMKernel.mmu.getAssociativeMemoryManager().handleTLBMiss(pid, bad_vpn, loader);
+                boolean resolved = VMKernel.mmu.getAssociativeMemoryManager().handleTLBMiss(pid, bad_vpn, loader);
+                Lib.assertTrue(resolved, "Can't handle TLB miss!");
                 break;
             default:
                 super.handleException(cause);
@@ -198,7 +199,7 @@ public class VMProcess extends UserProcess {
     @Override
     // just show swapping count after termination of each process
     protected int handleExit(int status) {
-        System.out.println("Swap Count "+ SwapSpace.swappingCount);
+        System.out.println("Swap count(" + pid + "): "+ SwapSpace.swappingCount);
         return super.handleExit(status);
     }
 

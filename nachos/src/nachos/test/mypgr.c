@@ -10,7 +10,7 @@
 
 #include "syscall.h"
 
-void main()
+int main()
 {
     char *execArgs[256];
     int processID1, processID2, status1, status2;
@@ -44,7 +44,7 @@ void main()
     join(processID1, &status1);
     printf("********* Join On Process %d Finished\nStatus Value:  %d    ***************\n", processID1, status1);
 
-    printf("mypgr forking matmult.coff... \n");
+    printf("\nmypgr forking matmult.coff... \n");
     processID1 = exec("matmult.coff", 1, execArgs);
 //    join(processID1, &status1);
 //    printf("********* Join On Process %d Finished\nStatus Value:  %d    ***************\n", processID1, status1);
@@ -53,4 +53,5 @@ void main()
 //    halt();
 //    /* not reached */
 //    printf("mypgr failed to halt Nachos!\n");
+    return 0;
 }

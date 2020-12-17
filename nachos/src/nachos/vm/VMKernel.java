@@ -43,9 +43,20 @@ public class VMKernel extends UserKernel {
      * Terminate this kernel. Never returns.
      */
     public void terminate() {
-        System.out.println("\n\nTotal TLB hits : " + MMU.AssociativeMemoryManager.tlbHits);
+        System.out.println("\n\n______________STATISTICS_____________");
+        System.out.println("\nTotal TLB hits: " + MMU.AssociativeMemoryManager.tlbHits);
+        System.out.println("Total TLB miss: " + MMU.AssociativeMemoryManager.tlbMiss);
+        System.out.println("\nTotal Page Fault: " + MMU.PageTableManager.pageFaultCount);
+        for(int ppn = 0; ppn < MMU.PageTableManager.faultCountPerPPN.length; ++ppn) {
+            System.out.println("PPN: " + ppn + " witnessed " + (int)MMU.PageTableManager.faultCountPerPPN[ppn]
+                    + " page faults. " + "\tfault rate: " +
+                    (MMU.PageTableManager.faultCountPerPPN[ppn] * 100.0) / MMU.PageTableManager.pageFaultCount + "%");
+        }
+        System.out.println("-----------------------------------");
+
         mmu.clearSwapArea();
         super.terminate();
+
     }
 
     protected static MMU mmu;

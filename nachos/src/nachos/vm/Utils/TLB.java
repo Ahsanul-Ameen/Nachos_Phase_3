@@ -40,6 +40,12 @@ public class TLB {
                 iMin = i;
         }
         return iMin;
+        //return getRandomIndex(0, tlbSize);
+    }
+
+    // [Min, Max)
+    private int getRandomIndex(int Min, int Max) {
+        return Min + (int)(Math.random() * (Max - Min));
     }
 
     public static int getTlbSize() {
