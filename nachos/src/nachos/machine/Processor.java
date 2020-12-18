@@ -334,7 +334,7 @@ public final class Processor {
                 Lib.debug(dbgProcessor, "\t\tTLB miss");
                 throw new MipsException(exceptionTLBMiss, vaddr);
             } else {
-                ++MMU.AssociativeMemoryManager.tlbHits;
+                ++MMU.AssociativeMemoryManager.tlbHits; // this part added externally (else block)
             }
         }
 
