@@ -23,7 +23,8 @@ public class SwapSpace {
     }
 
     public void init() {
-        swappingCount = 0;
+        swappingInCount = 0;
+        swappingOutCount = 0;
         this.swapFile = Machine.stubFileSystem().open(fileName, true);
         swapLock = new Lock();
     }
@@ -48,7 +49,7 @@ public class SwapSpace {
         int pageNo = assignedPage.containsKey(pageKey) ? assignedPage.get(pageKey) : allocateNextPage();
         assignedPage.put(pageKey, pageNo);
         translationMap.put(pageKey, translationEntry);
-        ++swappingCount;
+        ++swappingOutCount;
         int writtenBytes = swapFile.write(pageNo * Machine.processor().pageSize, Machine.processor().getMemory(),
                 Processor.makeAddress(translationEntry.ppn, 0), Machine.processor().pageSize);
         swapLock.release();
@@ -75,7 +76,7 @@ public class SwapSpace {
         translationEntry.dirty = false;
         translationEntry.used = false;
 
-        ++swappingCount;
+        ++swappingInCount;
         swapLock.release();
 
         return translationEntry;
@@ -97,7 +98,7 @@ public class SwapSpace {
     OpenFile swapFile;
     private String fileName;
 
-    public static int swappingCount = 0;
+    public static int swappingInCount = 0, swappingOutCount = 0;
     private int pageCount = 0;
 
     private static Lock swapLock;

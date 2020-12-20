@@ -99,38 +99,51 @@ public class MMU {
             ++pageFaultCount;
             faultLock.acquire();
 
-            int removable_ppn = findRemovableIndex();
-            int removable_vpn = pageTable.getVPN(removable_ppn);
-            int removable_pid = pageTable.getPID(removable_ppn);
-            TranslationEntry removable_entry = pageTable.getTranslationEntry(removable_ppn);
+            int accounted_ppn = -1;
 
-            // do a swap out operation with a removable page
-            {
-                if(removable_pid == pid) {
-                    //clear the corresponding TLB entry (consumed by this process's vpn)
-                    associativeMemoryManager.eraseTLBEntry(removable_pid, removable_vpn);
+            if(pageTable.isRAMFree()) { // don't need to swap out any existing page
+                Integer free_ppn = pageTable.nextFreePPN();
+                Lib.assertTrue(free_ppn != -1, "Invalid free ppn, Need to swap out!");
+                //System.out.println("$ Physical page " + free_ppn + " found as free in the RAM!");
+
+                accounted_ppn = free_ppn;
+            } else {    // swap out of any existing page is needed here
+                int removable_ppn = findRemovableIndex();
+                int removable_vpn = pageTable.getVPN(removable_ppn);
+                int removable_pid = pageTable.getPID(removable_ppn);
+                TranslationEntry removable_entry = pageTable.getTranslationEntry(removable_ppn);
+
+                // do a swap out operation with a removable page
+                {
+                    if(removable_pid == pid) {
+                        //clear the corresponding TLB entry (consumed by this process's vpn)
+                        associativeMemoryManager.eraseTLBEntry(removable_pid, removable_vpn);
+                    }
+
+                    if(removable_entry != null) {
+                        int writtenBytes = swapSpace.swapOut(removable_pid, removable_vpn, removable_entry);
+                        //Lib.assertTrue(writtenBytes != Machine.processor().pageSize, "writing error during swap out!");
+                    }
+                    pageTable.removePage(removable_pid, removable_vpn);
                 }
 
-                if(removable_entry != null) {
-                    int writtenBytes = swapSpace.swapOut(removable_pid, removable_vpn, removable_entry);
-                    //Lib.assertTrue(writtenBytes != Machine.processor().pageSize, "writing error during swap out!");
-                }
-                pageTable.removePage(removable_pid, removable_vpn);
+                accounted_ppn = removable_ppn;
             }
 
-            // do a swap in operation with the required page
+            // (This is a must) do a swap in operation with the required page
             {
                 // first find the page in the swap area
-                removable_entry = swapSpace.swapIn(pid, vpn, removable_ppn); // ppn unchanged
+                TranslationEntry loadedEntry = swapSpace.swapIn(pid, vpn, accounted_ppn); // ppn unchanged
                 // page not in swap area so load it from program(disk)
-                if(removable_entry == null) {
+                if(loadedEntry == null) {
                     // load appropriate section from disk(file) & update entry using loader
-                    removable_entry = new TranslationEntry(vpn, removable_ppn, true,
-                            loader.loadSection(vpn, removable_ppn).readOnly, false, false);
+                    loadedEntry = new TranslationEntry(vpn, accounted_ppn, true,
+                            loader.loadSection(vpn, accounted_ppn).readOnly, false, false);
                 }
-                pageTable.insert(pid, removable_entry);
-                lruReplacement[removable_ppn] = Machine.timer().getTime(); // update page load time
-                ++faultCountPerPPN[removable_ppn]; // a page fault happened within the context of this ppn
+                pageTable.insert(pid, loadedEntry);
+                lruReplacement[accounted_ppn] = Machine.timer().getTime(); // update page load time
+
+                ++faultCountPerPPN[accounted_ppn]; // a page fault happened within the context of this ppn
             }
 
             faultLock.release();

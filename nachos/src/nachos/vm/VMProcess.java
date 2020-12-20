@@ -199,7 +199,8 @@ public class VMProcess extends UserProcess {
     @Override
     // just show swapping count after termination of each process
     protected int handleExit(int status) {
-        System.out.println("Swap count(" + pid + "): "+ SwapSpace.swappingCount);
+        System.out.println("Swap-in count(VM process " + pid + " exiting): "+ SwapSpace.swappingInCount);
+        System.out.println("Swap-out count(VM process " + pid + " exiting): "+ SwapSpace.swappingOutCount);
         return super.handleExit(status);
     }
 

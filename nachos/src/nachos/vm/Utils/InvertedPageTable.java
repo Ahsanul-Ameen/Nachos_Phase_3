@@ -63,7 +63,19 @@ public class InvertedPageTable {
         return coreMap.containsKey(ppn) ? coreMap.get(ppn).first.second : -1;
     }
 
+    public boolean isRAMFree() {
+        return this.coreMap.size() < Machine.processor().getNumPhysPages();
+    }
 
+    public Integer nextFreePPN() {
+        Lib.assertTrue(isRAMFree(), "No free ppn, needs to swap out!");
+        for(int ppn = 0, MAX_PPN = Machine.processor().getNumPhysPages(); ppn < MAX_PPN; ++ppn) {
+            if(!coreMap.containsKey(ppn)) {
+                return ppn;
+            }
+        }
+        return -1;
+    }
 
     // ppn -> {{pid, vpn}, TranslationEntry}
     private final HashMap<Integer, Pair<Pair<Integer, Integer>, TranslationEntry>> coreMap;
