@@ -1,4 +1,4 @@
-# Nachos Phase 3 (45, 47, 58)
+# Nachos Phase 3
 
 
 # ![High Level Diagram](nachos/demand_paging.png)
